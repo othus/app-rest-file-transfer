@@ -1,0 +1,26 @@
+# docker-compose file to locally deploy both the sender and the receiver as a unit.
+# A generated key file with prepare-env.sh is assumed to be present in this path
+
+version: "3.9"
+services:
+  app-receiver:
+    image: app-receiver:latest
+    build:
+      context: ./app-receiver
+      dockerfile: Dockerfile
+    volumes:
+      - ${PWD}/output:/usr/src/app-receiver/output
+      - ./key:/run/secrets/decryption_key
+  app-sender:
+    image: app-sender:latest
+    build:
+      context: ./app-sender
+      dockerfile: Dockerfile
+    volumes:
+      - ${PWD}/input:/usr/src/app-sender/input
+      - ${PWD}/status-db:/usr/src/app-sender/status-db
+      - ./key:/run/secrets/encryption_key
+    environment:
+      - RECEIVER_ADDRESS=app-receiver
+    depends_on:
+        - app-receiver
